@@ -222,30 +222,55 @@ body::before {
 }
 
 .stats-card {
-  padding: 1rem;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #1f1b15;
+  position: relative;
+  padding: 1.2rem 1.2rem 1.1rem;
+  border-radius: 24px;
+  background: rgba(255, 249, 239, 0.95);
+  border: 1px solid rgba(130, 96, 54, 0.16);
+  color: #3d2c1a;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+}
+
+.stats-card--red::before {
+  content: "🛡️";
+}
+
+.stats-card--black::before {
+  content: "⚫";
 }
 
 .stats-card h3 {
-  margin: 0 0 0.75rem;
-  color: #1f1b15;
+  margin: 0 0 0.8rem;
+  color: #432c16;
 }
 
 .stats-card p,
 .stats-note p {
-  margin: 0.35rem 0;
-  color: #1f1b15;
+  margin: 0.4rem 0;
+  color: #4d3b27;
 }
 
 .stats-note {
-  padding: 1rem;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #1f1b15;
+  padding: 1.1rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(130, 96, 54, 0.14);
+  color: #4d3b27;
 }
 
 .score-card {
