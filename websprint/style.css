@@ -16,7 +16,7 @@
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #f4f1eb;
+  background-color: #a67616;
   background-image: linear-gradient(180deg, #f7f4ed 0%, #e8e4d4 100%);
   color: #111111;
   min-height: 100vh;
@@ -40,7 +40,7 @@ body::before {
 
 .app-shell {
   width: min(100%, 960px);
-  background: #ffffff;
+  background: #b67c25;
   border-radius: 28px;
   border: 2px solid #d6c9b3;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
