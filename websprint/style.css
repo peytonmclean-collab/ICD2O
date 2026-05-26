@@ -1,7 +1,7 @@
 :root {
   --board-size: 560px;
   --light-square: #f0d9b5;
-  --dark-square: #5b371a;
+  --dark-square: #ffffffb8;
   --highlight-color: #4caf50;
   --selected-color: #ff9800;
   --red-piece: #dc3545;
@@ -16,12 +16,9 @@
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #2c2319;
-  background-image:
-    radial-gradient(circle at 20% 15%, rgba(255, 242, 215, 0.18), transparent 25%),
-    radial-gradient(circle at 85% 20%, rgba(255, 235, 199, 0.12), transparent 20%),
-    linear-gradient(180deg, #4b392b 0%, #33251a 35%, #21170f 100%);
-  color: #f6ebd3;
+  background-color: #f4f1eb;
+  background-image: linear-gradient(180deg, #f7f4ed 0%, #e8e4d4 100%);
+  color: #111111;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -43,10 +40,10 @@ body::before {
 
 .app-shell {
   width: min(100%, 960px);
-  background: radial-gradient(circle at top left, #f8f0de 0%, #e3d0b3 50%, #c3a97d 100%);
+  background: #ffffff;
   border-radius: 28px;
-  border: 4px solid #5d3d22;
-  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.3);
+  border: 2px solid #d6c9b3;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
@@ -73,7 +70,7 @@ body::before {
 .subtitle {
   margin: 0.5rem auto 0;
   max-width: 32rem;
-  color: #5b4632;
+  color: #111111;
 }
 
 .hidden {
@@ -89,9 +86,9 @@ body::before {
 .hero-panel {
   padding: 1.4rem 1.2rem;
   border-radius: 24px;
-  background: rgba(35, 25, 14, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #d9d1c2;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
 .hero-panel h2 {
@@ -198,16 +195,16 @@ body::before {
 .hero-panel h2 {
   margin: 0 0 0.5rem;
   font-size: clamp(1.8rem, 2.2vw, 2.4rem);
-  color: #1f1b15;
+  color: #111111;
 }
 
 .tab-btn {
   flex: 1;
   padding: 0.85rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.07);
-  color: #f3e7d6;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  color: #111111;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
@@ -215,13 +212,14 @@ body::before {
 
 .tab-btn:hover,
 .tab-btn.active {
-  background: rgba(255, 255, 255, 0.16);
+  background: #f2f2f2;
   transform: translateY(-1px);
 }
 
 .tab-panel {
   display: none;
   gap: 1rem;
+  color: #111111;
 }
 
 .tab-panel.active {
@@ -243,26 +241,53 @@ body::before {
 .stats-card {
   padding: 1rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #ded6c3;
+  color: #111111;
 }
 
 .stats-card h3 {
   margin: 0 0 0.75rem;
-  color: #edd7b3;
+  color: #111111;
 }
 
 .stats-card p,
 .stats-note p {
   margin: 0.35rem 0;
-  color: #f7efd8;
+  color: #111111;
 }
 
 .stats-note {
   padding: 1rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #ded6c3;
+  color: #111111;
+}
+
+.mode-select {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  background: #ffffff;
+  color: #111111;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.mode-btn.active,
+.mode-btn:hover {
+  background: #f2f2f2;
+  transform: translateY(-1px);
 }
 
 .home-actions {

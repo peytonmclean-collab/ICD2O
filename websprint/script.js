@@ -11,6 +11,7 @@ const homeScreen = document.querySelector('.home-screen');
 const gamePanel = document.querySelector('.game-panel');
 const startButton = document.getElementById('start-button');
 const backHomeButton = document.getElementById('back-home-button');
+const modeButtons = document.querySelectorAll('.mode-btn');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const overviewPanel = document.getElementById('overview-panel');
 const statsPanel = document.getElementById('stats-panel');
@@ -34,6 +35,8 @@ let currentPlayer = 'red';
 let selectedSquare = null;
 let captureCounts = { red: 0, black: 0 };
 let captureFlash = null;
+let aiEnabled = false;
+let gameActive = false;
 let stats = {
   redWins: 0,
   blackWins: 0,
@@ -88,16 +91,62 @@ function switchTab(tabId) {
   statsPanel.classList.toggle('active', tabId === 'stats');
 }
 
+function setGameMode(mode) {
+  aiEnabled = mode === 'ai';
+  modeButtons.forEach(button => {
+    button.classList.toggle('active', button.dataset.mode === mode);
+  });
+}
+
+function chooseAIMove() {
+  const moves = getAvailableMoves('black');
+  if (!moves.length) return null;
+  const captureMoves = moves.filter(move => move.captureRow !== null);
+  if (captureMoves.length) {
+    return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+  }
+  return moves[Math.floor(Math.random() * moves.length)];
+}
+
+function chooseAICapture(moveOriginRow, moveOriginCol) {
+  const piece = getPiece(moveOriginRow, moveOriginCol);
+  if (!piece) return null;
+  const captureMoves = captureMovesForPiece(moveOriginRow, moveOriginCol, piece);
+  if (!captureMoves.length) return null;
+  return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+}
+
+function scheduleAIMoveIfNeeded() {
+  if (!gameActive || !aiEnabled || currentPlayer !== 'black') return;
+  setTimeout(() => {
+    if (!gameActive || currentPlayer !== 'black') return;
+    performAIMove();
+  }, 550);
+}
+
+function performAIMove() {
+  const move = chooseAIMove();
+  if (!move) {
+    checkGameOver();
+    return;
+  }
+  setMessage('AI is thinking...', 'black');
+  setTimeout(() => applyMove(move), 350);
+}
+
 function showGameScreen() {
   homeScreen.classList.add('hidden');
   gamePanel.classList.remove('hidden');
+  gameActive = true;
   renderBoard();
   setMessage('Game started. Good luck!');
+  scheduleAIMoveIfNeeded();
 }
 
 function showHomeScreen() {
   homeScreen.classList.remove('hidden');
   gamePanel.classList.add('hidden');
+  gameActive = false;
   setMessage('Pick a red piece to start.');
   renderStats();
 }
@@ -296,6 +345,10 @@ function updateForcedCaptures() {
 }
 
 function handleSquareClick(row, col) {
+  if (aiEnabled && currentPlayer === 'black') {
+    return;
+  }
+
   const clickedPiece = getPiece(row, col);
   if (clickedPiece && isFriendly(clickedPiece)) {
     const allMoves = getAvailableMoves(currentPlayer);
@@ -361,6 +414,13 @@ function applyMove(move) {
     if (move.captureRow !== null) {
       setMessage('Chain capture available! Take it now.', currentPlayer);
     }
+    if (aiEnabled && currentPlayer === 'black') {
+      const nextMove = chooseAICapture(move.toRow, move.toCol);
+      if (nextMove) {
+        setTimeout(() => applyMove(nextMove), 450);
+        return;
+      }
+    }
     return;
   }
 
@@ -369,6 +429,7 @@ function applyMove(move) {
   updateForcedCaptures();
   renderBoard();
   checkGameOver();
+  scheduleAIMoveIfNeeded();
 }
 
 function checkGameOver() {
@@ -393,6 +454,7 @@ function checkGameOver() {
 }
 
 function setGameOver(winner) {
+  gameActive = false;
   const openSquares = boardElement.querySelectorAll('.square');
   openSquares.forEach(square => square.disabled = true);
   winOverlay.textContent = `${winner} Wins!`;
@@ -421,10 +483,15 @@ backHomeButton.addEventListener('click', showHomeScreen);
 
 resetButton.addEventListener('click', resetGame);
 
+modeButtons.forEach(button => {
+  button.addEventListener('click', () => setGameMode(button.dataset.mode));
+});
+
 tabButtons.forEach(button => {
   button.addEventListener('click', () => switchTab(button.dataset.tab));
 });
 
 loadStats();
+setGameMode('human');
 renderStats();
 showHomeScreen();
