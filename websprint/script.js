@@ -49,6 +49,12 @@ function pieceColor(piece) {
 
 function renderBoard() {
   boardElement.innerHTML = '';
+  const validDestinations = selectedSquare
+    ? getAvailableMoves(currentPlayer)
+        .filter(move => move.fromRow === selectedSquare.row && move.fromCol === selectedSquare.col)
+        .map(move => `${move.toRow}-${move.toCol}`)
+    : [];
+
   for (let row = 0; row < SIZE; row += 1) {
     for (let col = 0; col < SIZE; col += 1) {
       const square = document.createElement('button');
@@ -73,7 +79,8 @@ function renderBoard() {
         square.classList.add('selected');
       }
 
-      if (forcedCaptureMoves.some(move => move.toRow === row && move.toCol === col)) {
+      if (forcedCaptureMoves.some(move => move.toRow === row && move.toCol === col)
+          || validDestinations.includes(`${row}-${col}`)) {
         square.classList.add('highlight');
       }
 
@@ -150,10 +157,30 @@ function updateForcedCaptures() {
 function handleSquareClick(row, col) {
   const clickedPiece = getPiece(row, col);
   if (clickedPiece && isFriendly(clickedPiece)) {
+    const allMoves = getAvailableMoves(currentPlayer);
+    const pieceMoves = allMoves.filter(move => move.fromRow === row && move.fromCol === col);
+    const captureMoves = allMoves.filter(move => move.captureRow !== null);
+
+    if (pieceMoves.length === 0) {
+      selectedSquare = null;
+      messageElement.textContent = captureMoves.length
+        ? 'This piece cannot move. You must capture with another piece.'
+        : 'That piece cannot move. Choose another piece.';
+      renderBoard();
+      return;
+    }
+
+    if (captureMoves.length && !pieceMoves.some(move => move.captureRow !== null)) {
+      selectedSquare = null;
+      messageElement.textContent = 'You must choose a piece that can capture the opponent.';
+      renderBoard();
+      return;
+    }
+
     selectedSquare = { row, col };
     updateForcedCaptures();
-    const pieceMoves = getAvailableMoves(currentPlayer).filter(move => move.fromRow === row && move.fromCol === col);
     forcedCaptureMoves = pieceMoves.length ? pieceMoves : forcedCaptureMoves;
+    messageElement.textContent = 'Click a highlighted square to move.';
     renderBoard();
     return;
   }
