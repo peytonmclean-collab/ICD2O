@@ -93,8 +93,8 @@ function captureMovesForPiece(row, col, piece) {
   const directions = isKing(piece)
     ? [1, -1].flatMap(r => [1, -1].map(c => ({ dr: r, dc: c })))
     : piece === 'red'
-      ? [{ dr: 1, dc: 1 }, { dr: 1, dc: -1 }]
-      : [{ dr: -1, dc: 1 }, { dr: -1, dc: -1 }];
+      ? [{ dr: -1, dc: 1 }, { dr: -1, dc: -1 }]
+      : [{ dr: 1, dc: 1 }, { dr: 1, dc: -1 }];
 
   return directions.reduce((moves, { dr, dc }) => {
     const midRow = row + dr;
@@ -113,8 +113,8 @@ function normalMovesForPiece(row, col, piece) {
   const directions = isKing(piece)
     ? [1, -1].flatMap(r => [1, -1].map(c => ({ dr: r, dc: c })))
     : piece === 'red'
-      ? [{ dr: 1, dc: 1 }, { dr: 1, dc: -1 }]
-      : [{ dr: -1, dc: 1 }, { dr: -1, dc: -1 }];
+      ? [{ dr: -1, dc: 1 }, { dr: -1, dc: -1 }]
+      : [{ dr: 1, dc: 1 }, { dr: 1, dc: -1 }];
 
   return directions.reduce((moves, { dr, dc }) => {
     const newRow = row + dr;
