@@ -7,20 +7,99 @@ const blackScoreElement = document.getElementById('black-score');
 const redKingsElement = document.getElementById('red-kings');
 const blackKingsElement = document.getElementById('black-kings');
 const winOverlay = document.getElementById('win-overlay');
+const homeScreen = document.querySelector('.home-screen');
+const gamePanel = document.querySelector('.game-panel');
+const startButton = document.getElementById('start-button');
+const backHomeButton = document.getElementById('back-home-button');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const overviewPanel = document.getElementById('overview-panel');
+const statsPanel = document.getElementById('stats-panel');
+const redWinsElement = document.getElementById('red-wins');
+const blackWinsElement = document.getElementById('black-wins');
+const redLossesElement = document.getElementById('red-losses');
+const blackLossesElement = document.getElementById('black-losses');
+const redCapturesElement = document.getElementById('red-captures');
+const blackCapturesElement = document.getElementById('black-captures');
+const redKingsEarnedElement = document.getElementById('red-kings-earned');
+const blackKingsEarnedElement = document.getElementById('black-kings-earned');
+const redCurrentKingsElement = document.getElementById('red-current-kings');
+const blackCurrentKingsElement = document.getElementById('black-current-kings');
+const redCurrentCapturesElement = document.getElementById('red-current-captures');
+const blackCurrentCapturesElement = document.getElementById('black-current-captures');
 
+const STORAGE_KEY = 'checkersSprintStats';
 const SIZE = 8;
 let board = [];
 let currentPlayer = 'red';
 let selectedSquare = null;
-let forcedCaptureMoves = [];
 let captureCounts = { red: 0, black: 0 };
 let captureFlash = null;
+let stats = {
+  redWins: 0,
+  blackWins: 0,
+  redLosses: 0,
+  blackLosses: 0,
+  redCaptures: 0,
+  blackCaptures: 0,
+  redKingsEarned: 0,
+  blackKingsEarned: 0,
+};
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 function setMessage(text, style = '') {
   messageElement.textContent = text;
   messageElement.className = 'message';
   if (style) messageElement.classList.add(style);
+}
+
+function loadStats() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    const parsed = JSON.parse(stored);
+    stats = { ...stats, ...parsed };
+  }
+}
+
+function saveStats() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+}
+
+function renderStats() {
+  redWinsElement.textContent = stats.redWins;
+  blackWinsElement.textContent = stats.blackWins;
+  redLossesElement.textContent = stats.redLosses;
+  blackLossesElement.textContent = stats.blackLosses;
+  redCapturesElement.textContent = stats.redCaptures;
+  blackCapturesElement.textContent = stats.blackCaptures;
+  redKingsEarnedElement.textContent = stats.redKingsEarned;
+  blackKingsEarnedElement.textContent = stats.blackKingsEarned;
+
+  redCurrentKingsElement.textContent = board.flat().filter(cell => cell && pieceColor(cell) === 'red' && isKing(cell)).length;
+  blackCurrentKingsElement.textContent = board.flat().filter(cell => cell && pieceColor(cell) === 'black' && isKing(cell)).length;
+  redCurrentCapturesElement.textContent = captureCounts.red;
+  blackCurrentCapturesElement.textContent = captureCounts.black;
+}
+
+function switchTab(tabId) {
+  tabButtons.forEach(button => {
+    button.classList.toggle('active', button.dataset.tab === tabId);
+  });
+  overviewPanel.classList.toggle('active', tabId === 'overview');
+  statsPanel.classList.toggle('active', tabId === 'stats');
+}
+
+function showGameScreen() {
+  homeScreen.classList.add('hidden');
+  gamePanel.classList.remove('hidden');
+  renderBoard();
+  setMessage('Game started. Good luck!');
+}
+
+function showHomeScreen() {
+  homeScreen.classList.remove('hidden');
+  gamePanel.classList.add('hidden');
+  setMessage('Pick a red piece to start.');
+  renderStats();
 }
 
 function playToneAt(freq, duration, startTime, type = 'sine', volume = 0.18) {
@@ -137,8 +216,7 @@ function renderBoard() {
         square.classList.add('capture-flash');
       }
 
-      if (forcedCaptureMoves.some(move => move.toRow === row && move.toCol === col)
-          || validDestinations.includes(`${row}-${col}`)) {
+      if (validDestinations.includes(`${row}-${col}`)) {
         square.classList.add('highlight');
       }
 
@@ -214,9 +292,7 @@ function getAvailableMoves(player) {
 }
 
 function updateForcedCaptures() {
-  const allMoves = getAvailableMoves(currentPlayer);
-  const captures = allMoves.filter(move => move.captureRow !== null);
-  forcedCaptureMoves = captures.length ? captures : []; 
+  // No mandatory capture enforcement: any legal move is allowed.
 }
 
 function handleSquareClick(row, col) {
@@ -224,27 +300,15 @@ function handleSquareClick(row, col) {
   if (clickedPiece && isFriendly(clickedPiece)) {
     const allMoves = getAvailableMoves(currentPlayer);
     const pieceMoves = allMoves.filter(move => move.fromRow === row && move.fromCol === col);
-    const captureMoves = allMoves.filter(move => move.captureRow !== null);
 
     if (pieceMoves.length === 0) {
       selectedSquare = null;
-      messageElement.textContent = captureMoves.length
-        ? 'This piece cannot move. You must capture with another piece.'
-        : 'That piece cannot move. Choose another piece.';
-      renderBoard();
-      return;
-    }
-
-    if (captureMoves.length && !pieceMoves.some(move => move.captureRow !== null)) {
-      selectedSquare = null;
-      messageElement.textContent = 'You must choose a piece that can capture the opponent.';
+      messageElement.textContent = 'That piece cannot move. Choose another piece.';
       renderBoard();
       return;
     }
 
     selectedSquare = { row, col };
-    updateForcedCaptures();
-    forcedCaptureMoves = pieceMoves.length ? pieceMoves : forcedCaptureMoves;
     messageElement.textContent = 'Click a highlighted square to move.';
     renderBoard();
     return;
@@ -282,6 +346,8 @@ function applyMove(move) {
   const promotionRow = piece === 'red' ? 0 : SIZE - 1;
   if ((piece === 'red' && move.toRow === promotionRow) || (piece === 'black' && move.toRow === promotionRow)) {
     setPiece(move.toRow, move.toCol, piece.toUpperCase());
+    stats[`${currentPlayer}KingsEarned`] += 1;
+    saveStats();
     setMessage(`${currentPlayer === 'red' ? 'Red' : 'Black'} crowned a king!`, currentPlayer);
   }
 
@@ -291,7 +357,6 @@ function applyMove(move) {
   const nextCaptureMoves = move.captureRow !== null ? captureMovesForPiece(move.toRow, move.toCol, movedPiece) : [];
   if (nextCaptureMoves.length) {
     selectedSquare = { row: move.toRow, col: move.toCol };
-    forcedCaptureMoves = nextCaptureMoves;
     renderBoard();
     if (move.captureRow !== null) {
       setMessage('Chain capture available! Take it now.', currentPlayer);
@@ -312,6 +377,17 @@ function checkGameOver() {
   const opponentPieces = board.flat().filter(cell => cell && pieceColor(cell) === opponent);
   if (!opponentPieces.length || opponentMoves.length === 0) {
     const winner = currentPlayer === 'red' ? 'Black' : 'Red';
+    if (winner === 'Red') {
+      stats.redWins += 1;
+      stats.blackLosses += 1;
+    } else {
+      stats.blackWins += 1;
+      stats.redLosses += 1;
+    }
+    stats.redCaptures += captureCounts.red;
+    stats.blackCaptures += captureCounts.black;
+    saveStats();
+    renderStats();
     setGameOver(winner);
   }
 }
@@ -328,13 +404,27 @@ function setGameOver(winner) {
 function resetGame() {
   currentPlayer = 'red';
   selectedSquare = null;
-  forcedCaptureMoves = [];
   winOverlay.classList.remove('visible');
   setMessage('Pick a red piece to start.');
   createBoard();
   updateForcedCaptures();
   renderBoard();
+  renderStats();
 }
 
+startButton.addEventListener('click', () => {
+  resetGame();
+  showGameScreen();
+});
+
+backHomeButton.addEventListener('click', showHomeScreen);
+
 resetButton.addEventListener('click', resetGame);
-resetGame();
+
+tabButtons.forEach(button => {
+  button.addEventListener('click', () => switchTab(button.dataset.tab));
+});
+
+loadStats();
+renderStats();
+showHomeScreen();

@@ -16,21 +16,48 @@
 body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: linear-gradient(180deg, #edf2f7 0%, #cbd5e1 100%);
-  color: #0f172a;
+  background-color: #2c2319;
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 242, 215, 0.18), transparent 25%),
+    radial-gradient(circle at 85% 20%, rgba(255, 235, 199, 0.12), transparent 20%),
+    linear-gradient(180deg, #4b392b 0%, #33251a 35%, #21170f 100%);
+  color: #f6ebd3;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  opacity: 0.16;
 }
 
 .app-shell {
   width: min(100%, 960px);
-  background: #ffffff;
-  border-radius: 22px;
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
+  background: radial-gradient(circle at top left, #f8f0de 0%, #e3d0b3 50%, #c3a97d 100%);
+  border-radius: 28px;
+  border: 4px solid #5d3d22;
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.3);
   padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 18%);
+  pointer-events: none;
 }
 
 .app-header {
@@ -46,7 +73,136 @@ body {
 .subtitle {
   margin: 0.5rem auto 0;
   max-width: 32rem;
-  color: #475569;
+  color: #5b4632;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.home-screen {
+  display: grid;
+  gap: 1.4rem;
+  padding: 0 0.2rem 0.2rem;
+}
+
+.hero-panel {
+  padding: 1.4rem 1.2rem;
+  border-radius: 24px;
+  background: rgba(35, 25, 14, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.hero-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.8rem, 2.2vw, 2.4rem);
+  color: #f9edd4;
+}
+
+.hero-panel p {
+  margin: 0;
+  color: #efdfc0;
+  line-height: 1.65;
+}
+
+.home-tabs {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: #f3e7d6;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.tab-panel {
+  display: none;
+  gap: 1rem;
+}
+
+.tab-panel.active {
+  display: grid;
+}
+
+.home-info-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stats-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stats-card {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stats-card h3 {
+  margin: 0 0 0.75rem;
+  color: #edd7b3;
+}
+
+.stats-card p,
+.stats-note p {
+  margin: 0.35rem 0;
+  color: #f7efd8;
+}
+
+.stats-note {
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-actions {
+  display: flex;
+  justify-content: center;
+}
+
+#start-button,
+#back-home-button {
+  padding: 0.95rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #9c6d2d;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#start-button:hover,
+#back-home-button:hover {
+  background: #b07f3d;
+  transform: translateY(-1px);
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .game-panel {
