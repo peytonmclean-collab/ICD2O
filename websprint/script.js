@@ -2,12 +2,63 @@ const boardElement = document.getElementById('board');
 const resetButton = document.getElementById('reset-button');
 const playerLabel = document.getElementById('current-player');
 const messageElement = document.getElementById('message');
+const redScoreElement = document.getElementById('red-score');
+const blackScoreElement = document.getElementById('black-score');
+const redKingsElement = document.getElementById('red-kings');
+const blackKingsElement = document.getElementById('black-kings');
+const winOverlay = document.getElementById('win-overlay');
 
 const SIZE = 8;
 let board = [];
 let currentPlayer = 'red';
 let selectedSquare = null;
 let forcedCaptureMoves = [];
+let captureCounts = { red: 0, black: 0 };
+let captureFlash = null;
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function setMessage(text, style = '') {
+  messageElement.textContent = text;
+  messageElement.className = 'message';
+  if (style) messageElement.classList.add(style);
+}
+
+function playToneAt(freq, duration, startTime, type = 'sine', volume = 0.18) {
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.type = type;
+  oscillator.frequency.value = freq;
+  gain.gain.setValueAtTime(volume, startTime);
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration);
+}
+
+function playCaptureSound() {
+  const now = audioContext.currentTime;
+  playToneAt(520, 0.08, now, 'triangle', 0.16);
+  playToneAt(700, 0.1, now + 0.06, 'sine', 0.14);
+}
+
+function playWinSound() {
+  const now = audioContext.currentTime;
+  playToneAt(440, 0.12, now, 'sine', 0.18);
+  playToneAt(660, 0.12, now + 0.14, 'sine', 0.18);
+  playToneAt(880, 0.18, now + 0.28, 'triangle', 0.2);
+}
+
+function triggerCaptureFlash(row, col) {
+  captureFlash = `${row}-${col}`;
+  renderBoard();
+  setTimeout(() => {
+    captureFlash = null;
+    renderBoard();
+  }, 450);
+}
 
 function createBoard() {
   board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -19,6 +70,8 @@ function createBoard() {
       }
     }
   }
+  captureCounts = { red: 0, black: 0 };
+  captureFlash = null;
 }
 
 function getPiece(row, col) {
@@ -68,6 +121,7 @@ function renderBoard() {
         const pieceElement = document.createElement('div');
         pieceElement.className = `piece ${pieceColor(piece)}`;
         if (isKing(piece)) {
+          pieceElement.classList.add('king');
           const ring = document.createElement('span');
           ring.className = 'king-ring';
           pieceElement.appendChild(ring);
@@ -77,6 +131,10 @@ function renderBoard() {
 
       if (selectedSquare && selectedSquare.row === row && selectedSquare.col === col) {
         square.classList.add('selected');
+      }
+
+      if (captureFlash === `${row}-${col}`) {
+        square.classList.add('capture-flash');
       }
 
       if (forcedCaptureMoves.some(move => move.toRow === row && move.toCol === col)
@@ -89,6 +147,13 @@ function renderBoard() {
     }
   }
 
+  const redKings = board.flat().filter(cell => cell && pieceColor(cell) === 'red' && isKing(cell)).length;
+  const blackKings = board.flat().filter(cell => cell && pieceColor(cell) === 'black' && isKing(cell)).length;
+
+  redScoreElement.textContent = captureCounts.red;
+  blackScoreElement.textContent = captureCounts.black;
+  redKingsElement.textContent = redKings;
+  blackKingsElement.textContent = blackKings;
   playerLabel.textContent = currentPlayer === 'red' ? 'Red' : 'Black';
 }
 
@@ -202,16 +267,25 @@ function applyMove(move) {
   setPiece(move.toRow, move.toCol, piece);
 
   if (move.captureRow !== null) {
+    const capturedPiece = getPiece(move.captureRow, move.captureCol);
+    if (capturedPiece) {
+      captureCounts[currentPlayer] += 1;
+      playCaptureSound();
+      triggerCaptureFlash(move.captureRow, move.captureCol);
+      setMessage(`${currentPlayer === 'red' ? 'Red' : 'Black'} captured a piece!`, currentPlayer);
+    }
     setPiece(move.captureRow, move.captureCol, null);
+  } else {
+    setMessage('Nice move!');
   }
 
-  const promotionRow = piece === 'red' ? SIZE - 1 : 0;
+  const promotionRow = piece === 'red' ? 0 : SIZE - 1;
   if ((piece === 'red' && move.toRow === promotionRow) || (piece === 'black' && move.toRow === promotionRow)) {
     setPiece(move.toRow, move.toCol, piece.toUpperCase());
+    setMessage(`${currentPlayer === 'red' ? 'Red' : 'Black'} crowned a king!`, currentPlayer);
   }
 
   selectedSquare = null;
-  messageElement.textContent = '';
 
   const movedPiece = getPiece(move.toRow, move.toCol);
   const nextCaptureMoves = move.captureRow !== null ? captureMovesForPiece(move.toRow, move.toCol, movedPiece) : [];
@@ -219,7 +293,9 @@ function applyMove(move) {
     selectedSquare = { row: move.toRow, col: move.toCol };
     forcedCaptureMoves = nextCaptureMoves;
     renderBoard();
-    messageElement.textContent = 'You can capture again with the same piece.';
+    if (move.captureRow !== null) {
+      setMessage('Chain capture available! Take it now.', currentPlayer);
+    }
     return;
   }
 
@@ -235,15 +311,26 @@ function checkGameOver() {
   const opponentMoves = getAvailableMoves(opponent);
   const opponentPieces = board.flat().filter(cell => cell && pieceColor(cell) === opponent);
   if (!opponentPieces.length || opponentMoves.length === 0) {
-    messageElement.textContent = `${currentPlayer === 'red' ? 'Black' : 'Red'} wins!`;
-    boardElement.querySelectorAll('.square').forEach(square => square.disabled = true);
+    const winner = currentPlayer === 'red' ? 'Black' : 'Red';
+    setGameOver(winner);
   }
+}
+
+function setGameOver(winner) {
+  const openSquares = boardElement.querySelectorAll('.square');
+  openSquares.forEach(square => square.disabled = true);
+  winOverlay.textContent = `${winner} Wins!`;
+  winOverlay.classList.add('visible');
+  setMessage(`${winner} has taken the board!`, 'win');
+  playWinSound();
 }
 
 function resetGame() {
   currentPlayer = 'red';
   selectedSquare = null;
-  messageElement.textContent = 'Pick a red piece to start.';
+  forcedCaptureMoves = [];
+  winOverlay.classList.remove('visible');
+  setMessage('Pick a red piece to start.');
   createBoard();
   updateForcedCaptures();
   renderBoard();

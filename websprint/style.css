@@ -62,8 +62,35 @@ body {
   flex-wrap: wrap;
 }
 
-.status-item {
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.score-card {
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.05);
+  font-size: 0.95rem;
   font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.red-score {
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.black-score {
+  border: 1px solid rgba(33, 37, 41, 0.2);
+}
+
+.king-score {
+  border: 1px solid rgba(37, 99, 235, 0.2);
 }
 
 #reset-button {
@@ -82,6 +109,10 @@ body {
   transform: translateY(-1px);
 }
 
+.board-container {
+  position: relative;
+}
+
 .board {
   width: var(--board-size);
   aspect-ratio: 1;
@@ -90,6 +121,46 @@ body {
   border: 4px solid #334155;
   border-radius: 18px;
   overflow: hidden;
+  transform: translateZ(0);
+}
+
+.win-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.15), transparent 38%),
+              radial-gradient(circle at bottom, rgba(16, 185, 129, 0.14), transparent 35%),
+              rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 2rem;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.9);
+  border-radius: 18px;
+  z-index: 2;
+}
+
+.win-overlay.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.capture-flash {
+  animation: capture-flash 0.45s ease-out;
+  box-shadow: inset 0 0 0 4px rgba(253, 224, 71, 0.9), 0 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+@keyframes capture-flash {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 .square {
@@ -126,6 +197,11 @@ body {
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15), 0 8px 18px rgba(15, 23, 42, 0.18);
   display: grid;
   place-items: center;
+  position: relative;
+}
+
+.piece.king {
+  border: 2px solid rgba(245, 158, 11, 0.95);
 }
 
 .piece.red {
@@ -144,18 +220,38 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
+.piece.king::before {
+  content: "♛";
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .king-ring {
   position: absolute;
   width: 50%;
   height: 50%;
   border-radius: 50%;
   border: 3px solid var(--king-ring);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
 }
 
 .message {
   min-height: 1.6rem;
   font-size: 0.95rem;
   color: #334155;
+  transition: color 0.2s ease;
+}
+
+.message.red {
+  color: #b91c1c;
+}
+
+.message.black {
+  color: #111827;
+}
+
+.message.win {
+  color: #059669;
 }
 
 @media (max-width: 720px) {
